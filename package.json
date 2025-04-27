@@ -1,0 +1,36 @@
+{
+  "name": "pronounceable-url-shortener",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A URL shortening service that creates memorable, pronounceable links with 24-hour expiration.",
+  "main": "index.js",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "test": "turbo run test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/0xRuangsak/pronounceable-url-shortener.git"
+  },
+  "keywords": [
+    "url-shortener"
+  ],
+  "author": "ruangsak.dev",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/0xRuangsak/pronounceable-url-shortener/issues"
+  },
+  "homepage": "https://github.com/0xRuangsak/pronounceable-url-shortener#readme",
+  "devDependencies": {
+    "turbo": "^2.5.2"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
