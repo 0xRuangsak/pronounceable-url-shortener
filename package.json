@@ -18,5 +18,8 @@
   "bugs": {
     "url": "https://github.com/0xRuangsak/pronounceable-url-shortener/issues"
   },
-  "homepage": "https://github.com/0xRuangsak/pronounceable-url-shortener#readme"
+  "homepage": "https://github.com/0xRuangsak/pronounceable-url-shortener#readme",
+  "devDependencies": {
+    "turbo": "^2.5.2"
+  }
 }
