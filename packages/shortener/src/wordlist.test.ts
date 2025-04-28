@@ -6,12 +6,26 @@
 
 import { WORDLIST } from "./wordlist";
 
-// Simple test to verify the wordlist length
-console.log(`Wordlist length: ${WORDLIST.length}`);
-console.log(`Is correct BIP39 length (2048): ${WORDLIST.length === 2048}`);
+describe("BIP39 Wordlist", () => {
+  test("should contain exactly 2048 words", () => {
+    expect(WORDLIST.length).toBe(2048);
+  });
 
-// Output a few sample words to verify content
-console.log("Sample words:");
-console.log(`First word: ${WORDLIST[0]}`);
-console.log(`Middle word: ${WORDLIST[Math.floor(WORDLIST.length / 2)]}`);
-console.log(`Last word: ${WORDLIST[WORDLIST.length - 1]}`);
+  test("should have expected words at specific positions", () => {
+    // Check beginning, middle, and end of list
+    expect(WORDLIST[0]).toBe("abandon");
+    expect(WORDLIST[Math.floor(WORDLIST.length / 2)]).toBe("length");
+    expect(WORDLIST[WORDLIST.length - 1]).toBe("zoo");
+  });
+
+  test("should have all words in lowercase", () => {
+    WORDLIST.forEach((word) => {
+      expect(word).toBe(word.toLowerCase());
+    });
+  });
+
+  test("should not have duplicate words", () => {
+    const uniqueWords = new Set(WORDLIST);
+    expect(uniqueWords.size).toBe(WORDLIST.length);
+  });
+});
