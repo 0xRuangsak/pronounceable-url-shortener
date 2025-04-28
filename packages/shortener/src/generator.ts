@@ -38,12 +38,12 @@ export function generateUniqueShortcode(
   do {
     shortcode = generateShortcode(url, salt);
     // If we get a collision, change the salt and try again
-    salt = `_${attempt}`;
     attempt++;
+    salt = `_${attempt}`;
   } while (existingCodes.has(shortcode) && attempt < WORDLIST.length);
 
   // If we've tried too many times, there might be an issue with our hashing
-  if (attempt >= WORDLIST.length) {
+  if (existingCodes.has(shortcode)) {
     throw new Error(
       "Failed to generate a unique shortcode after many attempts"
     );

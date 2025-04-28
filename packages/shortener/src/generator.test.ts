@@ -63,28 +63,25 @@ describe("URL Shortcode Generator", () => {
     });
 
     test("should throw error if all possible codes are in use", () => {
-      // Mock the WORDLIST to only have a few items
-      const originalLength = WORDLIST.length;
-      // @ts-ignore - Mocking private property
-      Object.defineProperty(WORDLIST, "length", {
-        value: 3,
-        configurable: true,
-      });
+      // Create a spy on the generateShortcode function to always return the same code
+      const spy = jest.spyOn(global.Math, "abs").mockImplementation(() => 42);
 
-      // Create a set with all possible words
-      const existingCodes = new Set(WORDLIST.slice(0, 3));
+      // This will make all calls to generateShortcode return the same word
+      // Create a set with that word
+      const testUrl = "https://example.com";
+      const code = generateShortcode(testUrl);
+      const existingCodes = new Set([code]);
 
-      // Should throw an error when trying to generate a unique code
-      expect(() =>
-        generateUniqueShortcode("https://example.com", existingCodes)
-      ).toThrow("All possible shortcodes are already in use");
+      // Now, since our mock will keep returning the same code and we already have it
+      // in our set, generateUniqueShortcode should eventually throw an error
+      jest.spyOn(global, "Error");
 
-      // Restore the original wordlist length
-      // @ts-ignore - Restoring private property
-      Object.defineProperty(WORDLIST, "length", {
-        value: originalLength,
-        configurable: true,
-      });
+      expect(() => {
+        generateUniqueShortcode(testUrl, existingCodes);
+      }).toThrow("Failed to generate a unique shortcode after many attempts");
+
+      // Restore the original implementation
+      spy.mockRestore();
     });
   });
 
