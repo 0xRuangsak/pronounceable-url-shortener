@@ -12,56 +12,79 @@ import { WORDLIST } from "./wordlist";
 describe("URL Shortcode Generator", () => {
   describe("generateShortcode", () => {
     test("should return a string", () => {
-      const result = generateShortcode();
+      const result = generateShortcode("https://example.com");
       expect(typeof result).toBe("string");
     });
 
     test("should return a valid BIP39 word", () => {
-      const result = generateShortcode();
+      const result = generateShortcode("https://example.com");
       expect(WORDLIST.includes(result)).toBe(true);
     });
 
-    test("should produce different results on multiple calls", () => {
-      // This test could theoretically fail with a very small probability
-      // if we randomly get the same word twice
-      const results = new Set();
-      for (let i = 0; i < 10; i++) {
-        results.add(generateShortcode());
-      }
-      // Should have at least 2 different results after 10 calls
-      expect(results.size).toBeGreaterThan(1);
+    test("should be deterministic for the same URL", () => {
+      const url = "https://example.com";
+      const result1 = generateShortcode(url);
+      const result2 = generateShortcode(url);
+      expect(result1).toBe(result2);
+    });
+
+    test("should generate different shortcodes for different URLs", () => {
+      const result1 = generateShortcode("https://example.com");
+      const result2 = generateShortcode("https://example.org");
+      expect(result1).not.toBe(result2);
+    });
+
+    test("should use salt to generate different codes for the same URL", () => {
+      const url = "https://example.com";
+      const result1 = generateShortcode(url);
+      const result2 = generateShortcode(url, "salt");
+      expect(result1).not.toBe(result2);
     });
   });
 
   describe("generateUniqueShortcode", () => {
     test("should return a string", () => {
-      const result = generateUniqueShortcode();
+      const result = generateUniqueShortcode("https://example.com");
       expect(typeof result).toBe("string");
     });
 
     test("should not return a code that exists in the provided set", () => {
-      const existingCodes = new Set(["abandon", "ability", "able"]);
-      const result = generateUniqueShortcode(existingCodes);
+      // First, get the standard shortcode for the URL
+      const standardCode = generateShortcode("https://example.com");
+
+      // Then, try to generate a unique one with the standard code already in the set
+      const existingCodes = new Set([standardCode]);
+      const result = generateUniqueShortcode(
+        "https://example.com",
+        existingCodes
+      );
+
       expect(existingCodes.has(result)).toBe(false);
     });
 
     test("should throw error if all possible codes are in use", () => {
       // Mock the WORDLIST to only have a few items
-      const originalWordlist = [...WORDLIST];
+      const originalLength = WORDLIST.length;
       // @ts-ignore - Mocking private property
-      WORDLIST.length = 3;
+      Object.defineProperty(WORDLIST, "length", {
+        value: 3,
+        configurable: true,
+      });
 
       // Create a set with all possible words
-      const existingCodes = new Set(["abandon", "ability", "able"]);
+      const existingCodes = new Set(WORDLIST.slice(0, 3));
 
       // Should throw an error when trying to generate a unique code
-      expect(() => generateUniqueShortcode(existingCodes)).toThrow(
-        "All possible shortcodes are already in use"
-      );
+      expect(() =>
+        generateUniqueShortcode("https://example.com", existingCodes)
+      ).toThrow("All possible shortcodes are already in use");
 
-      // Restore the original wordlist
+      // Restore the original wordlist length
       // @ts-ignore - Restoring private property
-      WORDLIST.length = originalWordlist.length;
+      Object.defineProperty(WORDLIST, "length", {
+        value: originalLength,
+        configurable: true,
+      });
     });
   });
 
