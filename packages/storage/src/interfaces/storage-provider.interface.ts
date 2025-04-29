@@ -1,5 +1,3 @@
-// File: packages/storage/src/interfaces/storage-provider.interface.ts
-
 /**
  * Interface defining the contract for URL shortener storage providers
  */
