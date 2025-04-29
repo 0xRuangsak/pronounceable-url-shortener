@@ -134,3 +134,19 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+# Turbo
+.turbo
+**/.turbo
+*.turbo.json
+*.tar.zst
+.turbo/cookies
+turbo-*.log
+
+# Build outputs
+dist
+build
+out
+.next
+
+# Dependencies
+node_modules
