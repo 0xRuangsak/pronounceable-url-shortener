@@ -9,6 +9,7 @@ jest.mock("ioredis", () => {
   const mockRedisInstance = {
     set: jest.fn().mockResolvedValue("OK"),
     get: jest.fn(),
+    expire: jest.fn().mockResolvedValue(1), // Add the expire method
     exists: jest.fn(),
     del: jest.fn().mockResolvedValue(1),
     quit: jest.fn().mockResolvedValue("OK"),
@@ -78,8 +79,10 @@ describe("RedisStorageProvider", () => {
 
       expect(mockRedis.set).toHaveBeenCalledWith(
         `${testConfig.keyPrefix}${shortcode}`,
-        originalUrl,
-        "EX",
+        originalUrl
+      );
+      expect(mockRedis.expire).toHaveBeenCalledWith(
+        `${testConfig.keyPrefix}${shortcode}`,
         testConfig.defaultTtl
       );
     });
@@ -93,8 +96,10 @@ describe("RedisStorageProvider", () => {
 
       expect(mockRedis.set).toHaveBeenCalledWith(
         `${testConfig.keyPrefix}${shortcode}`,
-        originalUrl,
-        "EX",
+        originalUrl
+      );
+      expect(mockRedis.expire).toHaveBeenCalledWith(
+        `${testConfig.keyPrefix}${shortcode}`,
         ttl
       );
     });
