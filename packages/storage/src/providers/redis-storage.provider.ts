@@ -32,49 +32,109 @@ export class RedisStorageProvider implements StorageProvider {
    * Connects to the Redis server
    */
   async connect(): Promise<void> {
-    // Implementation to be added
+    try {
+      this.redis = new Redis({
+        host: this.config.host,
+        port: this.config.port,
+        db: this.config.db,
+        password: this.config.password,
+        tls: this.config.tls ? {} : undefined,
+        connectTimeout: this.config.connectionTimeout,
+      });
+
+      // Set up error handler
+      this.redis.on("error", (err) => {
+        console.error("Redis connection error:", err);
+      });
+    } catch (error) {
+      // Rethrow any connection errors
+      throw error;
+    }
   }
 
   /**
    * Disconnects from the Redis server
    */
   async disconnect(): Promise<void> {
-    // Implementation to be added
+    if (this.redis) {
+      await this.redis.quit();
+      this.redis = null;
+    }
   }
 
   /**
    * Stores a URL with an associated shortcode
+   * @param shortcode The generated shortcode for the URL
+   * @param originalUrl The original URL to be shortened
+   * @param ttlSeconds Time-to-live in seconds (default: from config)
+   * @returns Promise resolving to boolean indicating success
    */
   async storeUrl(
     shortcode: string,
     originalUrl: string,
     ttlSeconds?: number
   ): Promise<boolean> {
-    // Implementation to be added
-    return false;
+    if (!this.redis) {
+      throw new Error("Not connected to Redis");
+    }
+
+    const key = `${this.config.keyPrefix}${shortcode}`;
+
+    // Make sure ttl is a number by using nullish coalescing
+    const ttl = ttlSeconds ?? this.config.defaultTtl ?? 86400;
+
+    // Use the proper Redis command signature
+    const result = await this.redis.set(key, originalUrl);
+
+    if (result === "OK") {
+      // Set expiration - ttl is guaranteed to be a number now
+      await this.redis.expire(key, ttl);
+    }
+
+    return result === "OK";
   }
 
   /**
    * Retrieves the original URL associated with a shortcode
+   * @param shortcode The shortcode to look up
+   * @returns Promise resolving to the original URL or null if not found
    */
   async getUrl(shortcode: string): Promise<string | null> {
-    // Implementation to be added
-    return null;
+    if (!this.redis) {
+      throw new Error("Not connected to Redis");
+    }
+
+    const key = `${this.config.keyPrefix}${shortcode}`;
+    return await this.redis.get(key);
   }
 
   /**
    * Checks if a shortcode exists in the storage
+   * @param shortcode The shortcode to check
+   * @returns Promise resolving to boolean indicating if shortcode exists
    */
   async exists(shortcode: string): Promise<boolean> {
-    // Implementation to be added
-    return false;
+    if (!this.redis) {
+      throw new Error("Not connected to Redis");
+    }
+
+    const key = `${this.config.keyPrefix}${shortcode}`;
+    const result = await this.redis.exists(key);
+    return result === 1;
   }
 
   /**
    * Deletes a URL mapping from storage
+   * @param shortcode The shortcode to delete
+   * @returns Promise resolving to boolean indicating success
    */
   async deleteUrl(shortcode: string): Promise<boolean> {
-    // Implementation to be added
-    return false;
+    if (!this.redis) {
+      throw new Error("Not connected to Redis");
+    }
+
+    const key = `${this.config.keyPrefix}${shortcode}`;
+    const result = await this.redis.del(key);
+    return result === 1;
   }
 }

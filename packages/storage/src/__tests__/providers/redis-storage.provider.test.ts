@@ -1,6 +1,9 @@
+// src/__tests__/providers/redis-storage.provider.test.ts
+
 import { StorageProvider } from "../../interfaces/storage-provider.interface";
 import { RedisConfig } from "../../interfaces/redis-config.interface";
 import { RedisStorageProvider } from "../../providers/redis-storage.provider";
+
 // Mock Redis client
 jest.mock("ioredis", () => {
   const mockRedisInstance = {
@@ -12,6 +15,7 @@ jest.mock("ioredis", () => {
     on: jest.fn(),
   };
 
+  // Return a constructor function that returns the mock instance
   return jest.fn(() => mockRedisInstance);
 });
 
@@ -27,17 +31,23 @@ describe("RedisStorageProvider", () => {
   };
 
   beforeEach(async () => {
+    // Reset mocks
+    jest.clearAllMocks();
+
+    // Get the mock Redis constructor
+    const MockRedis = require("ioredis");
+
     // Create a new instance for each test
     storageProvider = new RedisStorageProvider(testConfig);
     await storageProvider.connect();
 
-    // Get reference to mocked Redis instance
-    mockRedis = require("ioredis").mock.instances[0];
+    // Get reference to the mocked Redis instance
+    // This is the instance returned by the constructor
+    mockRedis = MockRedis.mock.results[0].value;
   });
 
   afterEach(async () => {
     await storageProvider.disconnect();
-    jest.clearAllMocks();
   });
 
   describe("connect", () => {
@@ -49,7 +59,8 @@ describe("RedisStorageProvider", () => {
 
     it("should handle connection errors", async () => {
       // Force the Redis constructor to throw
-      require("ioredis").mockImplementationOnce(() => {
+      const MockRedis = require("ioredis");
+      MockRedis.mockImplementationOnce(() => {
         throw new Error("Connection failed");
       });
 
