@@ -34,6 +34,11 @@ app.post("/api/shorten", async (req: Request, res: Response) => {
       return res.status(400).json({ error: "URL is required" });
     }
 
+    // Validate the storage provider is connected
+    if (!storageProvider) {
+      return res.status(500).json({ error: "Storage service unavailable" });
+    }
+
     // Generate a unique shortcode
     let shortcode = "";
     let attempts = 0;
@@ -73,6 +78,11 @@ app.get("/:shortcode", async (req: Request, res: Response) => {
   try {
     const { shortcode } = req.params;
 
+    // Validate the storage provider is connected
+    if (!storageProvider) {
+      return res.status(500).json({ error: "Storage service unavailable" });
+    }
+
     // Get original URL
     const originalUrl = await storageProvider.getUrl(shortcode);
 
@@ -90,47 +100,85 @@ app.get("/:shortcode", async (req: Request, res: Response) => {
 
 // Health check
 app.get("/api/health", (req: Request, res: Response) => {
-  return res.status(200).json({ status: "OK" });
+  // Check if Redis is connected
+  const redisConnected = storageProvider !== undefined;
+
+  return res.status(200).json({
+    status: "OK",
+    redis: redisConnected ? "connected" : "disconnected",
+  });
 });
 
 // Initialize server
 const initServer = async () => {
   try {
-    // Initialize Redis storage provider
-    storageProvider = new RedisStorageProvider({
-      host: process.env.REDIS_HOST || "localhost",
-      port: parseInt(process.env.REDIS_PORT || "6379"),
-      password: process.env.REDIS_PASSWORD,
-      keyPrefix: process.env.REDIS_KEY_PREFIX || "urlshortener:",
-      defaultTtl: parseInt(process.env.DEFAULT_TTL || "86400"),
-    });
+    // Initialize Redis storage provider with connection retry logic
+    const maxRetries = 3;
+    let connected = false;
+    let retryCount = 0;
 
-    // Connect to Redis
-    await storageProvider.connect();
-    console.log("Connected to Redis");
+    while (!connected && retryCount < maxRetries) {
+      try {
+        // Initialize Redis storage provider
+        storageProvider = new RedisStorageProvider({
+          host: process.env.REDIS_HOST || "localhost",
+          port: parseInt(process.env.REDIS_PORT || "6379"),
+          password: process.env.REDIS_PASSWORD,
+          keyPrefix: process.env.REDIS_KEY_PREFIX || "urlshortener:",
+          defaultTtl: parseInt(process.env.DEFAULT_TTL || "86400"),
+        });
+
+        // Connect to Redis
+        await storageProvider.connect();
+        connected = true;
+        console.log("Connected to Redis");
+      } catch (error) {
+        retryCount++;
+        console.error(
+          `Failed to connect to Redis (attempt ${retryCount}/${maxRetries}):`,
+          error
+        );
+
+        if (retryCount >= maxRetries) {
+          console.error("Max retries reached, starting server without Redis");
+          // We'll still start the server, but the health check will show Redis as disconnected
+          // Storage-dependent operations will return appropriate errors
+        } else {
+          // Wait before retrying
+          await new Promise((resolve) => setTimeout(resolve, 2000));
+        }
+      }
+    }
 
     // Start server
-    app.listen(port, () => {
+    const server = app.listen(port, () => {
       console.log(`Server running on port ${port}`);
     });
+
+    // Handle process termination
+    process.on("SIGTERM", gracefulShutdown);
+    process.on("SIGINT", gracefulShutdown);
+
+    function gracefulShutdown() {
+      console.log("Received termination signal, shutting down gracefully...");
+      server.close(async () => {
+        try {
+          if (storageProvider) {
+            await storageProvider.disconnect();
+            console.log("Disconnected from Redis");
+          }
+          process.exit(0);
+        } catch (error) {
+          console.error("Error during shutdown:", error);
+          process.exit(1);
+        }
+      });
+    }
   } catch (error) {
     console.error("Failed to initialize server:", error);
     process.exit(1);
   }
 };
-
-// Handle graceful shutdown
-process.on("SIGINT", async () => {
-  console.log("Shutting down server...");
-  try {
-    await storageProvider.disconnect();
-    console.log("Disconnected from Redis");
-    process.exit(0);
-  } catch (error) {
-    console.error("Error during shutdown:", error);
-    process.exit(1);
-  }
-});
 
 // Start server
 initServer();
