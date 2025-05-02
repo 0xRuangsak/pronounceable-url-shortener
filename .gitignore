@@ -134,3 +134,73 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+# Turbo
+.turbo
+**/.turbo
+*.turbo.json
+*.tar.zst
+.turbo/cookies
+turbo-*.log
+
+# Build outputs
+dist
+build
+out
+.next
+
+# Dependencies
+node_modules
+
+# Build outputs
+dist/
+*.js
+*.js.map
+*.d.ts
+*.d.ts.map
+
+# Coverage reports
+coverage/
+.jest-cache/
+**/__snapshots__/
+*.snap
+
+# Node.js
+node_modules/
+npm-debug.log
+yarn-error.log
+yarn-debug.log
+
+# TypeScript build outputs
+dist/
+*.js
+*.js.map
+*.d.ts
+*.d.ts.map
+
+# Jest
+coverage/
+.jest-cache/
+**/__snapshots__/
+*.snap
+
+# Turbo
+.turbo
+**/.turbo
+*.turbo.json
+*.tar.zst
+.turbo/cookies
+turbo-*.log
+
+# Environment
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Editor directories and files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
