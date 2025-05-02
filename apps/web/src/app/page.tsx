@@ -3,6 +3,7 @@
 "use client";
 
 import { useState } from "react";
+import { ENDPOINTS } from "@/config/api";
 
 export default function Home() {
   const [url, setUrl] = useState("");
@@ -44,7 +45,7 @@ export default function Home() {
     setIsLoading(true);
 
     try {
-      const response = await fetch("http://localhost:3001/api/shorten", {
+      const response = await fetch(ENDPOINTS.SHORTEN, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
