@@ -4,20 +4,22 @@
     "module": "commonjs",
     "outDir": "./dist",
     "rootDir": "./src",
+    "baseUrl": ".",
+    "paths": {
+      "@url-shortener/storage": ["../../packages/storage/src"],
+      "@url-shortener/shortener": ["../../packages/shortener/src"]
+    },
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "composite": true,
     "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
-    "baseUrl": ".",
-    "paths": {
-      "@url-shortener/shortener": ["../../packages/shortener/src"],
-      "@url-shortener/storage": ["../../packages/storage/src"]
-    }
+    "composite": true
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "**/*.test.ts"]
+  "exclude": ["node_modules", "**/*.test.ts"],
+  "references": [
+    { "path": "../../packages/storage" },
+    { "path": "../../packages/shortener" }
+  ]
 }

@@ -1,10 +1,11 @@
+// apps/api/src/index.ts
 import express, { Request, Response } from "express";
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
 import dotenv from "dotenv";
 import { StorageProvider, RedisStorageProvider } from "@url-shortener/storage";
-import { generateUniqueShortcode } from "@url-shortener/shortener";
+import { generateShortcode } from "@url-shortener/shortener";
 
 // Load environment variables
 dotenv.config();
@@ -33,11 +34,24 @@ app.post("/api/shorten", async (req: Request, res: Response) => {
       return res.status(400).json({ error: "URL is required" });
     }
 
-    // Generate unique shortcode
-    const shortcode = await generateUniqueShortcode(
-      url,
-      async (code) => await storageProvider.exists(code)
+    // Generate a unique shortcode
+    let shortcode = "";
+    let attempts = 0;
+    const MAX_ATTEMPTS = 10;
+
+    do {
+      shortcode = generateShortcode(url, attempts > 0 ? `_${attempts}` : "");
+      attempts++;
+    } while (
+      (await storageProvider.exists(shortcode)) &&
+      attempts < MAX_ATTEMPTS
     );
+
+    if (await storageProvider.exists(shortcode)) {
+      return res
+        .status(500)
+        .json({ error: "Failed to generate a unique shortcode" });
+    }
 
     // Store URL with 24-hour expiration
     await storageProvider.storeUrl(shortcode, url);
