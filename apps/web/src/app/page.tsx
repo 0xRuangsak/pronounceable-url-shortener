@@ -145,11 +145,14 @@ export default function Home() {
                     Short URL:
                   </span>
                   <div className="flex-1 flex items-center">
-                    href={result.shortUrl}
-                    target=&quot;_blank&quot; rel=&quot;noopener
-                    noreferrer&quot; className=&quot;text-blue-600
-                    hover:underline break-all mr-2&quot;
-                    <a>{result.shortUrl}</a>
+                    <a
+                      href={result.shortUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:underline break-all mr-2"
+                    >
+                      {result.shortUrl}
+                    </a>
                     <button
                       onClick={handleCopy}
                       className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-1 px-2 rounded text-xs"
