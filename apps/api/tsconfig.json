@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "target": "es2020",
+    "module": "commonjs",
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "baseUrl": ".",
+    "paths": {
+      "@url-shortener/storage": ["../../packages/storage/src"],
+      "@url-shortener/shortener": ["../../packages/shortener/src"]
+    },
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "declaration": true,
+    "composite": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "**/*.test.ts"],
+  "references": [
+    { "path": "../../packages/storage" },
+    { "path": "../../packages/shortener" }
+  ]
+}
